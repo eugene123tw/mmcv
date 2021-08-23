@@ -640,9 +640,13 @@ def test_roll(shifts_dims_pair):
     torch.testing.assert_allclose(ort_output, pytorch_output)
 
 
+@pytest.mark.skipif(
+    torch.__version__ == 'parrots',
+    reason='onnx is not supported in parrots directly')
+@pytest.mark.skipif(
+    not torch.cuda.is_available(),
+    reason='modulated_deform_conv2d only supports in GPU')
 def test_modulated_deform_conv2d():
-    if torch.__version__ == 'parrots':
-        pytest.skip('onnx is not supported in parrots directly')
     try:
         from mmcv.ops import ModulatedDeformConv2d
         from mmcv.ops import get_onnxruntime_op_path
@@ -675,10 +679,26 @@ def test_modulated_deform_conv2d():
     offset = torch.cat((o1, o2), dim=1)
     mask = torch.sigmoid(mask)
 
-    model_with_bias = ModulatedDeformConv2d(in_channels, out_channels, kernel_size,
-                                            stride, padding, dilation, groups, deform_groups, bias=True)
-    model_without_bias = ModulatedDeformConv2d(in_channels, out_channels, kernel_size,
-                                               stride, padding, dilation, groups, deform_groups, bias=False)
+    model_with_bias = ModulatedDeformConv2d(
+        in_channels,
+        out_channels,
+        kernel_size,
+        stride,
+        padding,
+        dilation,
+        groups,
+        deform_groups,
+        bias=True)
+    model_without_bias = ModulatedDeformConv2d(
+        in_channels,
+        out_channels,
+        kernel_size,
+        stride,
+        padding,
+        dilation,
+        groups,
+        deform_groups,
+        bias=False)
     models = [model_with_bias.cuda(), model_without_bias.cuda()]
 
     for model in models:
@@ -690,8 +710,7 @@ def test_modulated_deform_conv2d():
                 export_params=True,
                 keep_initializers_as_inputs=True,
                 input_names=['input', 'offset', 'mask'],
-                opset_version=11
-            )
+                opset_version=11)
 
         session_options = rt.SessionOptions()
         if os.path.exists(ort_custom_op_path):
@@ -699,10 +718,12 @@ def test_modulated_deform_conv2d():
 
         # compute onnx_output
         sess = rt.InferenceSession(onnx_file, session_options)
-        onnx_output = sess.run(None,
-                               {'input': input.cpu().detach().numpy(),
-                                'offset': offset.cpu().detach().numpy(),
-                                'mask': mask.cpu().detach().numpy()})[0]
+        onnx_output = sess.run(
+            None, {
+                'input': input.cpu().detach().numpy(),
+                'offset': offset.cpu().detach().numpy(),
+                'mask': mask.cpu().detach().numpy()
+            })[0]
 
         # compute pytorch_output
         with torch.no_grad():

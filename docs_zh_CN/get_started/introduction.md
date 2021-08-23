@@ -4,8 +4,6 @@
     <img src="https://raw.githubusercontent.com/open-mmlab/mmcv/master/docs/mmcv-logo.png" width="300"/>
 </div>
 
-## 简介
-
 MMCV 是一个面向计算机视觉的基础库，它支持了很多开源项目，例如：
 
 - [MMClassification](https://github.com/open-mmlab/mmclassification): OpenMMLab 图像分类工具箱
@@ -31,4 +29,6 @@ MMCV 提供了如下众多功能：
 
 如想了解更多特性和使用，请参考[文档](https://mmcv.readthedocs.io/zh_CN/latest)。
 
-提示: MMCV 需要 Python 3.6 以上版本。
+```{note}
+MMCV 需要 Python 3.6 以上版本。
+```
